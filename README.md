@@ -2,7 +2,7 @@
 
 Service which gets opened MRs from gitlab group periodically and post them into the slack channel. It's used to remind developers about not reviewed MRs
 
-
+<img width="1008" alt="andreyshep2012 - Test - Slack 2023-03-02 12-19-39" src="https://user-images.githubusercontent.com/30069672/222518158-d605712a-07b3-456f-b4c0-7bb5ee46170e.png">
 
 ### Setup Gitlab
 
