@@ -34,7 +34,7 @@ CRON_TIME=10:30
 
 ### Run locally
 
-Creatse `.env` file
+Create create text file with environment variables (.env format)
 
 ```
 GITLAB_TOKEN=`your-token`
@@ -45,7 +45,7 @@ CRON_PERIOD=1d
 CRON_TIME=10:30
 ```
 
-Put `.env` file path to `CONFIG_PATH` env variable, build app and start
+Put file path to `CONFIG_PATH` env variable, build app and start service
 
 ```
 $ make build
@@ -55,7 +55,7 @@ $ export CONFIG_PATH="./.env.sample"&&./gitlab-mr-notifier
 
 ### Testing
 
-Creatse `.env` file in root with test values
+Create `.env` file in root with test values
 
 ```
 GITLAB_TOKEN=`your-token`
