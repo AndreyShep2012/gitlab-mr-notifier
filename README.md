@@ -2,7 +2,7 @@
 
 Service which gets opened MRs from gitlab group periodically and post them into the slack channel. It's used to remind developers about not reviewed MRs
 
-
+<img width="1008" alt="andreyshep2012 - Test - Slack 2023-03-02 12-19-39" src="https://user-images.githubusercontent.com/30069672/222518158-d605712a-07b3-456f-b4c0-7bb5ee46170e.png">
 
 ### Setup Gitlab
 
@@ -36,7 +36,7 @@ _**Important**_: if `CRON_PERIOD` is empty, service will check MRs immediately a
 
 ### Run locally
 
-Creatse `.env` file
+Create create text file with environment variables (.env format)
 
 ```
 GITLAB_TOKEN=`your-token`
@@ -47,7 +47,7 @@ CRON_PERIOD=1d
 CRON_TIME=10:30
 ```
 
-Put `.env` file path to `CONFIG_PATH` env variable, build app and start
+Put file path to `CONFIG_PATH` env variable, build app and start service
 
 ```
 $ make build
@@ -57,7 +57,7 @@ $ export CONFIG_PATH="./.env.sample"&&./gitlab-mr-notifier
 
 ### Testing
 
-Creatse `.env` file in root with test values
+Create `.env` file in root with test values
 
 ```
 GITLAB_TOKEN=`your-token`
