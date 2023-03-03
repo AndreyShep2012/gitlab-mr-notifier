@@ -14,8 +14,8 @@ type Config struct {
 	GitlabToken     string `env:"GITLAB_TOKEN"`
 	GitlabGroupID   int    `env:"GITLAB_GROUP_ID"`
 	SlackWebhookURL string `env:"SLACK_WEBHOOK_URL"`
-	CronPeriod      string `env:"CRON_PERIOD" env-default:"1d"`
-	CronTime        string `env:"CRON_TIME" env-default:"10:30"`
+	CronPeriod      string `env:"CRON_PERIOD"`
+	CronTime        string `env:"CRON_TIME"`
 }
 
 func Load() Config {
@@ -50,10 +50,6 @@ func checkRequred(c Config) error {
 
 	if c.SlackWebhookURL == "" {
 		errs = append(errs, "SLACK_WEBHOOK_URL can't be empty")
-	}
-
-	if c.CronPeriod == "" {
-		errs = append(errs, "CRON_PERIOD can't be empty")
 	}
 
 	if len(errs) > 0 {

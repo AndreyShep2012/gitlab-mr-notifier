@@ -32,6 +32,8 @@ CRON_PERIOD=1d
 CRON_TIME=10:30
 ```
 
+_**Important**_: if `CRON_PERIOD` is empty, service will check MRs immediately and will be stopped, this approach can be used for deployment in lambda
+
 ### Run locally
 
 Creatse `.env` file
