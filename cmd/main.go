@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
-	config := config.Load()
+	config, err := config.Load()
+	if err != nil {
+		log.Fatalf("config load error %v", err)
+	}
 
 	log.Printf("start service with cron settings: period %s, time: %s", config.CronPeriod, config.CronTime)
 

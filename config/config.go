@@ -2,7 +2,7 @@ package config
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"os"
 	"strings"
 
@@ -11,31 +11,32 @@ import (
 )
 
 type Config struct {
-	GitlabToken     string `env:"GITLAB_TOKEN"`
-	GitlabGroupID   int    `env:"GITLAB_GROUP_ID"`
-	SlackWebhookURL string `env:"SLACK_WEBHOOK_URL"`
+	GitlabToken     string `env:"GITLAB_TOKEN" env-required:"true"`
+	GitlabGroupID   int    `env:"GITLAB_GROUP_ID" env-required:"true"`
+	SlackWebhookURL string `env:"SLACK_WEBHOOK_URL" env-required:"true"`
 	CronPeriod      string `env:"CRON_PERIOD"`
 	CronTime        string `env:"CRON_TIME"`
+	UseAWSLambda    bool   `env:"USE_AWS_LAMBDA"`
 }
 
-func Load() Config {
+func Load() (Config, error) {
+	var c Config
 	path := os.Getenv("CONFIG_PATH")
 	if path != "" {
 		if err := godotenv.Load(path); err != nil {
-			log.Fatalf("load config file %s error %v", path, err.Error())
+			return c, fmt.Errorf("load config file %s error %v", path, err.Error())
 		}
 	}
 
-	var c Config
 	if err := cleanenv.ReadEnv(&c); err != nil {
-		log.Fatalf("read env error %v", err)
+		return Config{}, fmt.Errorf("read env error %v", err)
 	}
 
 	if err := checkRequred(c); err != nil {
-		log.Fatalf("check required error %v", err)
+		return Config{}, fmt.Errorf("check required error %v", err)
 	}
 
-	return c
+	return c, nil
 }
 
 func checkRequred(c Config) error {
