@@ -3,7 +3,7 @@ package main
 import (
 	"gitlab-mr-notifier/internal/config"
 	"gitlab-mr-notifier/internal/cron"
-	"gitlab-mr-notifier/internal/gitapi"
+	"gitlab-mr-notifier/internal/gitlabapi"
 	"gitlab-mr-notifier/internal/slack"
 	"gitlab-mr-notifier/internal/utils"
 	"log"
@@ -51,7 +51,7 @@ func runWithAWSLambda() {
 
 func check(config config.Config) {
 	sl := slack.New()
-	gitapi := gitapi.New()
+	gitapi := gitlabapi.New()
 
 	log.Println("start checking")
 	mrs, err := gitapi.GetMRList(config.GitlabToken, config.GitlabGroupID)

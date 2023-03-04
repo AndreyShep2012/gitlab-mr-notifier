@@ -1,4 +1,4 @@
-package gitapi
+package gitlabapi
 
 import (
 	"gitlab-mr-notifier/internal/interfaces"
@@ -7,14 +7,14 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-type gitapi struct {
+type gitlabapi struct {
 }
 
-func New() interfaces.GitApi {
-	return new(gitapi)
+func New() interfaces.GitlabApi {
+	return new(gitlabapi)
 }
 
-func (ga gitapi) GetMRList(token string, groupid int) (models.MergeRequests, error) {
+func (ga gitlabapi) GetMRList(token string, groupid int) (models.MergeRequests, error) {
 	client, err := gitlab.NewClient(token)
 	if err != nil {
 		return nil, err

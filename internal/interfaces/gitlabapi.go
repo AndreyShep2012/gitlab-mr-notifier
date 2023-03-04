@@ -2,6 +2,6 @@ package interfaces
 
 import "gitlab-mr-notifier/internal/models"
 
-type GitApi interface {
+type GitlabApi interface {
 	GetMRList(token string, groupid int) (models.MergeRequests, error)
 }

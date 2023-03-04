@@ -1,4 +1,4 @@
-package gitapi_test
+package gitlabapi_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"gitlab-mr-notifier/internal/gitapi"
+	"gitlab-mr-notifier/internal/gitlabapi"
 
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ func TestGetMRList(t *testing.T) {
 	groupid, err := strconv.Atoi(id)
 	require.NoError(t, err)
 
-	api := gitapi.New()
+	api := gitlabapi.New()
 	res, err := api.GetMRList(token, groupid)
 	fmt.Println("GetMRList result: ", res)
 	require.NoError(t, err)
@@ -36,7 +36,7 @@ func TestGetMRListEmptyCreds(t *testing.T) {
 	token := os.Getenv("GITLAB_TOKEN")
 	require.NotEmpty(t, token)
 
-	api := gitapi.New()
+	api := gitlabapi.New()
 	res, err := api.GetMRList(token, 0)
 	require.Error(t, err)
 	require.Empty(t, res)
