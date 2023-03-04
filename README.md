@@ -101,3 +101,7 @@ $ make aws-zip
 These environment variables should be configured on AWS side: `GITLAB_TOKEN`, `GITLAB_GROUP_ID`, `SLACK_WEBHOOK_URL`
 
 **_Important:_** All environment variables should be [encrypted](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html)
+
+[Amazon EventBridge Scheduler](https://aws.amazon.com/blogs/compute/introducing-amazon-eventbridge-scheduler/) Can be used to call lambda periodically. [Cron-based schedules](https://docs.aws.amazon.com/scheduler/latest/UserGuide/schedule-types.html?icmpid=docs_console_unmapped#cron-based) can be use for this purpose
+
+
