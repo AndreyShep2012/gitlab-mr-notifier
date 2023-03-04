@@ -1,11 +1,17 @@
 package config
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"gitlab-mr-notifier/utils"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
@@ -16,7 +22,6 @@ type Config struct {
 	SlackWebhookURL string `env:"SLACK_WEBHOOK_URL" env-required:"true"`
 	CronPeriod      string `env:"CRON_PERIOD"`
 	CronTime        string `env:"CRON_TIME"`
-	UseAWSLambda    bool   `env:"USE_AWS_LAMBDA"`
 }
 
 func Load() (Config, error) {
@@ -28,7 +33,13 @@ func Load() (Config, error) {
 		}
 	}
 
-	if err := cleanenv.ReadEnv(&c); err != nil {
+	if utils.IsAWSLambda() {
+		var err error
+		c, err = configFromAWS()
+		if err != nil {
+			return Config{}, err
+		}
+	} else if err := cleanenv.ReadEnv(&c); err != nil {
 		return Config{}, fmt.Errorf("read env error %v", err)
 	}
 
@@ -37,6 +48,61 @@ func Load() (Config, error) {
 	}
 
 	return c, nil
+}
+
+func configFromAWS() (Config, error) {
+	session, err := session.NewSession()
+	if err != nil {
+		return Config{}, err
+	}
+
+	kmsClient := kms.New(session)
+	encryptionContext := aws.StringMap(map[string]string{"LambdaFunctionName": os.Getenv("AWS_LAMBDA_FUNCTION_NAME")})
+
+	gitlabToken, err := decryptAWSString(os.Getenv("GITLAB_TOKEN"), kmsClient, encryptionContext)
+	if err != nil {
+		return Config{}, err
+	}
+
+	gitlabGroupId, err := decryptAWSString(os.Getenv("GITLAB_GROUP_ID"), kmsClient, encryptionContext)
+	if err != nil {
+		return Config{}, err
+	}
+
+	groupId, err := strconv.Atoi(gitlabGroupId)
+	if err != nil {
+		return Config{}, err
+	}
+
+	slackWebhookURL, err := decryptAWSString(os.Getenv("SLACK_WEBHOOK_URL"), kmsClient, encryptionContext)
+	if err != nil {
+		return Config{}, err
+	}
+
+	return Config{
+		GitlabToken:     gitlabToken,
+		GitlabGroupID:   groupId,
+		SlackWebhookURL: slackWebhookURL,
+	}, nil
+}
+
+func decryptAWSString(encrypted string, kmsClient *kms.KMS, encryptionContext map[string]*string) (string, error) {
+	decodedBytes, err := base64.StdEncoding.DecodeString(encrypted)
+	if err != nil {
+		return "", err
+	}
+
+	input := &kms.DecryptInput{
+		CiphertextBlob:    decodedBytes,
+		EncryptionContext: encryptionContext,
+	}
+
+	response, err := kmsClient.Decrypt(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(response.Plaintext), nil
 }
 
 func checkRequred(c Config) error {

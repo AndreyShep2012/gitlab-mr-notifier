@@ -36,19 +36,14 @@ func TestLoadFromFile(t *testing.T) {
 	require.Equal(t, "https://hooks.slack.com/services/T04RWJXV6KC", c.SlackWebhookURL)
 	require.Equal(t, "10s", c.CronPeriod)
 	require.Empty(t, c.CronTime)
-	require.False(t, c.UseAWSLambda)
 
 	_, err = f.WriteString("CRON_TIME=10:30\n")
-	require.NoError(t, err)
-
-	_, err = f.WriteString("USE_AWS_LAMBDA=true\n")
 	require.NoError(t, err)
 
 	c, err = config.Load()
 	require.NoError(t, err)
 
 	require.Equal(t, "10:30", c.CronTime)
-	require.True(t, c.UseAWSLambda)
 
 	c, err = config.Load()
 	require.NoError(t, err)
@@ -76,7 +71,6 @@ func TestFromEnv(t *testing.T) {
 	require.NoError(t, os.Setenv("SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/T04RWJXV6KC"))
 	require.NoError(t, os.Setenv("CRON_PERIOD", "10s"))
 	require.NoError(t, os.Setenv("CRON_TIME", "10:30"))
-	require.NoError(t, os.Setenv("USE_AWS_LAMBDA", "true"))
 
 	c, err := config.Load()
 	require.NoError(t, err)
@@ -85,7 +79,6 @@ func TestFromEnv(t *testing.T) {
 	require.Equal(t, "https://hooks.slack.com/services/T04RWJXV6KC", c.SlackWebhookURL)
 	require.Equal(t, "10s", c.CronPeriod)
 	require.Equal(t, "10:30", c.CronTime)
-	require.True(t, c.UseAWSLambda)
 
 	require.NoError(t, os.Unsetenv("GITLAB_TOKEN"))
 

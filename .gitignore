@@ -15,6 +15,7 @@
 # vendor/
 
 gitlab-mr-notifier
+gitlab-mr-notifier.zip
 .env
 coverage.out
 .gitconfig
