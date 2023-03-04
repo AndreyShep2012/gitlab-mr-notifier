@@ -4,15 +4,15 @@ import (
 	"os"
 	"testing"
 
-	"gitlab-mr-notifier/models"
-	"gitlab-mr-notifier/slack"
+	"gitlab-mr-notifier/internal/models"
+	"gitlab-mr-notifier/internal/slack"
 
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSend(t *testing.T) {
-	require.NoError(t, godotenv.Load("../.env"))
+	require.NoError(t, godotenv.Load("../../.env"))
 
 	url := os.Getenv("SLACK_WEBHOOK_URL")
 	require.NotEmpty(t, url)

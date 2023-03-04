@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"testing"
 
-	"gitlab-mr-notifier/gitapi"
+	"gitlab-mr-notifier/internal/gitapi"
 
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetMRList(t *testing.T) {
-	require.NoError(t, godotenv.Load("../.env"))
+	require.NoError(t, godotenv.Load("../../.env"))
 
 	token := os.Getenv("GITLAB_TOKEN")
 	require.NotEmpty(t, token)
@@ -31,7 +31,7 @@ func TestGetMRList(t *testing.T) {
 }
 
 func TestGetMRListEmptyCreds(t *testing.T) {
-	require.NoError(t, godotenv.Load("../.env"))
+	require.NoError(t, godotenv.Load("../../.env"))
 
 	token := os.Getenv("GITLAB_TOKEN")
 	require.NotEmpty(t, token)

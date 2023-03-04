@@ -2,7 +2,7 @@ package cron
 
 import (
 	"errors"
-	"gitlab-mr-notifier/interfaces"
+	"gitlab-mr-notifier/internal/interfaces"
 	"strconv"
 	"strings"
 

@@ -3,8 +3,8 @@ package slack
 import (
 	"errors"
 	"fmt"
-	"gitlab-mr-notifier/interfaces"
-	"gitlab-mr-notifier/models"
+	"gitlab-mr-notifier/internal/interfaces"
+	"gitlab-mr-notifier/internal/models"
 
 	slack_api "github.com/easonlin404/go-slack"
 )

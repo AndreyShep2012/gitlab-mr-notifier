@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"gitlab-mr-notifier/utils"
+	"gitlab-mr-notifier/internal/utils"
 	"os"
 	"strconv"
 	"strings"

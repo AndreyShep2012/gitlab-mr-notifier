@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab-mr-notifier/cron"
+	"gitlab-mr-notifier/internal/cron"
 
 	"github.com/stretchr/testify/require"
 )

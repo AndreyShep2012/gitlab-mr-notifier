@@ -1,11 +1,11 @@
 package main
 
 import (
-	"gitlab-mr-notifier/config"
-	"gitlab-mr-notifier/cron"
-	"gitlab-mr-notifier/gitapi"
-	"gitlab-mr-notifier/slack"
-	"gitlab-mr-notifier/utils"
+	"gitlab-mr-notifier/internal/config"
+	"gitlab-mr-notifier/internal/cron"
+	"gitlab-mr-notifier/internal/gitapi"
+	"gitlab-mr-notifier/internal/slack"
+	"gitlab-mr-notifier/internal/utils"
 	"log"
 
 	"github.com/aws/aws-lambda-go/lambda"

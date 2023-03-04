@@ -1,8 +1,8 @@
 package gitapi
 
 import (
-	"gitlab-mr-notifier/interfaces"
-	"gitlab-mr-notifier/models"
+	"gitlab-mr-notifier/internal/interfaces"
+	"gitlab-mr-notifier/internal/models"
 
 	"github.com/xanzy/go-gitlab"
 )

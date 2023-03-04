@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	"gitlab-mr-notifier/config"
+	"gitlab-mr-notifier/internal/config"
 	"os"
 	"testing"
 
