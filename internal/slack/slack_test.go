@@ -3,6 +3,7 @@ package slack_test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"gitlab-mr-notifier/internal/models"
 	"gitlab-mr-notifier/internal/slack"
@@ -22,23 +23,30 @@ func TestSend(t *testing.T) {
 
 	require.NoError(t, err)
 
-	mrs := models.MergeRequests{{
-		Title:                         "Mr 1",
-		Author:                        "Author 1",
-		Description:                   "Description 1",
-		UserNotesCount:                1,
-		URL:                           "https://gitlab.com/testingapi3/docker-test/-/merge_requests/2",
-		HasConflicts:                  false,
-		IsBlockingDiscussionsResolved: false,
-	}, {
-		Title:                         "Mr 2",
-		Author:                        "Author 2",
-		Description:                   "Description 2",
-		UserNotesCount:                123,
-		URL:                           "https://gitlab.com/testingapi3/docker-test/-/merge_requests/3",
-		HasConflicts:                  true,
-		IsBlockingDiscussionsResolved: true,
-	}}
+	mrs := models.MergeRequests{
+		{
+			Title:               "Mr 1",
+			Author:              "Author 1",
+			Description:         "Description 1",
+			URL:                 "https://gitlab.com/testingapi3/docker-test/-/merge_requests/2",
+			HasConflicts:        false,
+			UnresolvedThreads:   0,
+			DetailedMergeStatus: "not_approved",
+			CreatedAt:           time.Now(),
+			UpdatedAt:           time.Now(),
+		},
+		{
+			Title:               "Mr 2",
+			Author:              "Author 2",
+			Description:         "Description 2",
+			URL:                 "https://gitlab.com/testingapi3/docker-test/-/merge_requests/3",
+			HasConflicts:        true,
+			UnresolvedThreads:   1,
+			DetailedMergeStatus: "not_approved",
+			CreatedAt:           time.Now().AddDate(0, 0, -2),
+			UpdatedAt:           time.Now().AddDate(0, 0, -1),
+		},
+	}
 
 	err = sl.Notify(url, mrs)
 	require.NoError(t, err)

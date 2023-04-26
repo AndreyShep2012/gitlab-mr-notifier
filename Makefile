@@ -2,7 +2,7 @@ build:
 	go build -o gitlab-mr-notifier ./cmd/main.go
 
 build-linux:
-	GOOS=linux go build -o gitlab-mr-notifier ./cmd/main.go
+	CGO_ENABLED=0 GOOS=linux go build -o gitlab-mr-notifier ./cmd/main.go
 
 aws-zip: build-linux
 	zip -jrm gitlab-mr-notifier.zip gitlab-mr-notifier

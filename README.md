@@ -50,7 +50,7 @@ Put file path to `CONFIG_PATH` env variable, build app and start service
 
 ```
 $ make build
-$ export CONFIG_PATH="./.env.sample"&&./gitlab-mr-notifier
+$ export CONFIG_PATH="./.env.sample" && ./gitlab-mr-notifier
 ```
 
 
