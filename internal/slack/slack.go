@@ -29,12 +29,8 @@ func (s slack) Notify(creds interface{}, mrs models.MergeRequests) error {
 		return err
 	}
 
-	const defaultTimeLayout = "2006-01-02 15:04:05"
 	for _, m := range mrs {
-		text := fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\nDescription: %s\n\nHasConflicts: %v\nDetailedMergeStatus: %s\nUnresolvedThreads: %d\nCreatedAt: %s\nUpdatedAt: %s```",
-			m.Author, m.Title, m.URL, m.Description, m.HasConflicts, m.DetailedMergeStatus, m.UnresolvedThreads, m.CreatedAt.Format(defaultTimeLayout), m.UpdatedAt.Format(defaultTimeLayout))
-
-		_, err := api.SendMessage(slack_api.Message{Text: text})
+		_, err := api.SendMessage(slack_api.Message{Text: getMrText(m)})
 		if err != nil {
 			return err
 		}
@@ -51,4 +47,10 @@ func getIntroText(mrsCount int) string {
 	}
 
 	return fmt.Sprintf("%d MRs are still need to be reviewed:", mrsCount)
+}
+
+func getMrText(m models.MergeRequest) string {
+	const defaultTimeLayout = "2006-01-02 15:04:05"
+	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\nDescription: %s\n\nHasConflicts: %v\nDetailedMergeStatus: %s\nUnresolvedThreads: %d\nCreatedAt: %s\nUpdatedAt: %s```",
+		m.Author, m.Title, m.URL, m.Description, m.HasConflicts, m.DetailedMergeStatus, m.UnresolvedThreads, m.CreatedAt.Format(defaultTimeLayout), m.UpdatedAt.Format(defaultTimeLayout))
 }
