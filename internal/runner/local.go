@@ -27,14 +27,20 @@ func (r local) Run() {
 		return
 	}
 
-	r.runWithCron(config)
+	if err := r.runWithCron(config); err != nil {
+		log.Fatalf("start cron error %v", err)
+	}
 }
 
-func (r local) runWithCron(config config.Config) {
+func (r local) runWithCron(config config.Config) error {
 	cron := cron.New()
-	cron.Start(config.CronPeriod, config.CronTime, func() {
+	err := cron.Start(config.CronPeriod, config.CronTime, func() {
 		check(config)
 	})
+
+	if err != nil {
+		return err
+	}
 
 	select {}
 }
