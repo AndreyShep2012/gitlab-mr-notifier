@@ -1,10 +1,7 @@
 package interfaces
 
-import (
-	"github.com/xanzy/go-gitlab"
-)
+import "gitlab-mr-notifier/internal/models"
 
 type GitlabApi interface {
-	GetMRList(groupid int) ([]*gitlab.MergeRequest, error)
-	GetMRDiscussions(projectID, mergeRequestID, page, perPage int) ([]*gitlab.Discussion, error)
+	GetMRList(token string, groupid int) (models.MergeRequests, error)
 }

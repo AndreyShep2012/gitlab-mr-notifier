@@ -24,18 +24,10 @@ func TestGitlabapi(t *testing.T) {
 	groupid, err := strconv.Atoi(id)
 	require.NoError(t, err)
 
-	api, err := gitlabapi.New(token)
-	require.NoError(t, err)
-
-	res, err := api.GetMRList(groupid)
+	api := gitlabapi.New()
+	res, err := api.GetMRList(token, groupid)
 	require.NoError(t, err)
 	fmt.Println("GetMRList result: ", res)
-
-	for _, mr := range res {
-		discussions, err := api.GetMRDiscussions(mr.ProjectID, mr.IID, 0, 10)
-		require.NoError(t, err)
-		fmt.Println("MR discussions: ", discussions)
-	}
 }
 
 func TestGetMRListEmptyCreds(t *testing.T) {
@@ -44,10 +36,9 @@ func TestGetMRListEmptyCreds(t *testing.T) {
 	token := os.Getenv("GITLAB_TOKEN")
 	require.NotEmpty(t, token)
 
-	api, err := gitlabapi.New(token)
-	require.NoError(t, err)
+	api := gitlabapi.New()
 
-	res, err := api.GetMRList(0)
+	res, err := api.GetMRList(token, 0)
 	require.Error(t, err)
 	require.Empty(t, res)
 
@@ -57,7 +48,7 @@ func TestGetMRListEmptyCreds(t *testing.T) {
 	groupid, err := strconv.Atoi(id)
 	require.NoError(t, err)
 
-	res, err = api.GetMRList(groupid)
+	res, err = api.GetMRList("", groupid)
 	require.Error(t, err)
 	require.Empty(t, res)
 }
