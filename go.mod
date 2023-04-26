@@ -10,7 +10,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.4.2
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.1
-	github.com/xanzy/go-gitlab v0.82.0
+	github.com/xanzy/go-gitlab v0.83.0
 )
 
 require (
