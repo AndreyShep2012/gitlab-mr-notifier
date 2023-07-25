@@ -21,25 +21,42 @@ func (ga gitlabapi) GetMRList(token string, groupid int) (models.MergeRequests, 
 		return nil, err
 	}
 
-	mrs, _, err := client.MergeRequests.ListGroupMergeRequests(groupid, &gitlab.ListGroupMergeRequestsOptions{
-		State: gitlab.String("opened"),
-		Scope: gitlab.String("all"),
-		Sort:  gitlab.String("asc"),
-	})
-
-	res := make(models.MergeRequests, 0, len(mrs))
-	for _, mr := range mrs {
-		if mr.Draft {
-			continue
+	var res models.MergeRequests
+	page := 1
+	for {
+		mrs, response, err := getMRListByPage(client, groupid, page)
+		if err != nil {
+			return res, err
 		}
 
-		notifyMR := toModel(mr)
-		notifyMR.UnresolvedThreads = getUnresolvedThreads(client, mr.ProjectID, mr.IID)
+		for _, mr := range mrs {
+			if mr.Draft {
+				continue
+			}
 
-		res = append(res, notifyMR)
+			notifyMR := toModel(mr)
+			notifyMR.UnresolvedThreads = getUnresolvedThreads(client, mr.ProjectID, mr.IID)
+
+			res = append(res, notifyMR)
+		}
+
+		if response.CurrentPage >= response.TotalPages {
+			break
+		}
+
+		page++
 	}
 
 	return res, err
+}
+
+func getMRListByPage(client *gitlab.Client, groupid, page int) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
+	return client.MergeRequests.ListGroupMergeRequests(groupid, &gitlab.ListGroupMergeRequestsOptions{
+		ListOptions: gitlab.ListOptions{Page: page},
+		State:       gitlab.String("opened"),
+		Scope:       gitlab.String("all"),
+		Sort:        gitlab.String("asc"),
+	})
 }
 
 func getUnresolvedThreads(client *gitlab.Client, projectID, mergeRequestID int) int {

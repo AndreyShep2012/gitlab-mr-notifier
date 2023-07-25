@@ -16,7 +16,6 @@ func check(config config.Config) {
 	mrs, err := gitapi.GetMRList(config.GitlabToken, config.GitlabGroupID)
 	if err != nil {
 		log.Println("getting mr list error:", err)
-		return
 	}
 	log.Println("found ", len(mrs), " MRs")
 	err = sl.Notify(config.SlackWebhookURL, mrs)
