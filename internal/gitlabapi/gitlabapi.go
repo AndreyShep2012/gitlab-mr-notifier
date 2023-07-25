@@ -30,10 +30,6 @@ func (ga gitlabapi) GetMRList(token string, groupid int) (models.MergeRequests, 
 		}
 
 		for _, mr := range mrs {
-			if mr.Draft {
-				continue
-			}
-
 			notifyMR := toModel(mr)
 			notifyMR.UnresolvedThreads = getUnresolvedThreads(client, mr.ProjectID, mr.IID)
 
@@ -56,6 +52,7 @@ func getMRListByPage(client *gitlab.Client, groupid, page int) ([]*gitlab.MergeR
 		State:       gitlab.String("opened"),
 		Scope:       gitlab.String("all"),
 		Sort:        gitlab.String("asc"),
+		WIP:         gitlab.String("no"),
 	})
 }
 
