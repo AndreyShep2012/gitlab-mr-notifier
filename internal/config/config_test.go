@@ -36,7 +36,8 @@ func TestLoadFromFile(t *testing.T) {
 	require.Equal(t, "https://hooks.slack.com/services/T04RWJXV6KC", c.SlackWebhookURL)
 	require.Equal(t, "10s", c.CronPeriod)
 	require.Empty(t, c.CronTime)
-	require.Equal(t, 1000, c.MessageDescriptionLimit)
+	require.Equal(t, 500, c.MessageDescriptionLimit)
+	require.Equal(t, "slack", c.Notifier)
 
 	_, err = f.WriteString("CRON_TIME=10:30\n")
 	require.NoError(t, err)
@@ -44,11 +45,15 @@ func TestLoadFromFile(t *testing.T) {
 	_, err = f.WriteString("MESSAGE_DESCRIPTION_LIMIT=10\n")
 	require.NoError(t, err)
 
+	_, err = f.WriteString("NOTIFIER=log\n")
+	require.NoError(t, err)
+
 	c, err = config.Load()
 	require.NoError(t, err)
 
 	require.Equal(t, "10:30", c.CronTime)
 	require.Equal(t, 10, c.MessageDescriptionLimit)
+	require.Equal(t, "log", c.Notifier)
 
 	c, err = config.Load()
 	require.NoError(t, err)
@@ -77,6 +82,7 @@ func TestFromEnv(t *testing.T) {
 	require.NoError(t, os.Setenv("CRON_PERIOD", "10s"))
 	require.NoError(t, os.Setenv("CRON_TIME", "10:30"))
 	require.NoError(t, os.Setenv("MESSAGE_DESCRIPTION_LIMIT", "10"))
+	require.NoError(t, os.Setenv("NOTIFIER", "log"))
 
 	c, err := config.Load()
 	require.NoError(t, err)
@@ -86,11 +92,14 @@ func TestFromEnv(t *testing.T) {
 	require.Equal(t, "10s", c.CronPeriod)
 	require.Equal(t, "10:30", c.CronTime)
 	require.Equal(t, 10, c.MessageDescriptionLimit)
+	require.Equal(t, "log", c.Notifier)
 
 	require.NoError(t, os.Unsetenv("MESSAGE_DESCRIPTION_LIMIT"))
+	require.NoError(t, os.Unsetenv("NOTIFIER"))
 	c, err = config.Load()
 	require.NoError(t, err)
-	require.Equal(t, 1000, c.MessageDescriptionLimit)
+	require.Equal(t, 500, c.MessageDescriptionLimit)
+	require.Equal(t, "slack", c.Notifier)
 
 	require.NoError(t, os.Unsetenv("GITLAB_TOKEN"))
 

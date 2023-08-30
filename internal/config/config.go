@@ -16,7 +16,8 @@ type Config struct {
 	SlackWebhookURL         string `env:"SLACK_WEBHOOK_URL" env-required:"true"`
 	CronPeriod              string `env:"CRON_PERIOD"`
 	CronTime                string `env:"CRON_TIME"`
-	MessageDescriptionLimit int    `env:"MESSAGE_DESCRIPTION_LIMIT" env-default:"1000"`
+	MessageDescriptionLimit int    `env:"MESSAGE_DESCRIPTION_LIMIT" env-default:"500"`
+	Notifier                string `env:"NOTIFIER" env-default:"slack"`
 }
 
 func Load() (Config, error) {
