@@ -9,7 +9,8 @@ import (
 )
 
 func check(config config.Config) {
-	sl := slack.New()
+	f := slack.NewSimpleMessageFormatter(config.MessageDescriptionLimit)
+	sl := slack.New(f)
 	gitapi := gitlabapi.New()
 
 	log.Println("start checking")

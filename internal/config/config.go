@@ -11,11 +11,12 @@ import (
 )
 
 type Config struct {
-	GitlabToken     string `env:"GITLAB_TOKEN" env-required:"true"`
-	GitlabGroupID   int    `env:"GITLAB_GROUP_ID" env-required:"true"`
-	SlackWebhookURL string `env:"SLACK_WEBHOOK_URL" env-required:"true"`
-	CronPeriod      string `env:"CRON_PERIOD"`
-	CronTime        string `env:"CRON_TIME"`
+	GitlabToken             string `env:"GITLAB_TOKEN" env-required:"true"`
+	GitlabGroupID           int    `env:"GITLAB_GROUP_ID" env-required:"true"`
+	SlackWebhookURL         string `env:"SLACK_WEBHOOK_URL" env-required:"true"`
+	CronPeriod              string `env:"CRON_PERIOD"`
+	CronTime                string `env:"CRON_TIME"`
+	MessageDescriptionLimit int    `env:"MESSAGE_DESCRIPTION_LIMIT" env-default:"1000"`
 }
 
 func Load() (Config, error) {

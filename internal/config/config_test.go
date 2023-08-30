@@ -36,14 +36,19 @@ func TestLoadFromFile(t *testing.T) {
 	require.Equal(t, "https://hooks.slack.com/services/T04RWJXV6KC", c.SlackWebhookURL)
 	require.Equal(t, "10s", c.CronPeriod)
 	require.Empty(t, c.CronTime)
+	require.Equal(t, 1000, c.MessageDescriptionLimit)
 
 	_, err = f.WriteString("CRON_TIME=10:30\n")
+	require.NoError(t, err)
+
+	_, err = f.WriteString("MESSAGE_DESCRIPTION_LIMIT=10\n")
 	require.NoError(t, err)
 
 	c, err = config.Load()
 	require.NoError(t, err)
 
 	require.Equal(t, "10:30", c.CronTime)
+	require.Equal(t, 10, c.MessageDescriptionLimit)
 
 	c, err = config.Load()
 	require.NoError(t, err)
@@ -71,6 +76,7 @@ func TestFromEnv(t *testing.T) {
 	require.NoError(t, os.Setenv("SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/T04RWJXV6KC"))
 	require.NoError(t, os.Setenv("CRON_PERIOD", "10s"))
 	require.NoError(t, os.Setenv("CRON_TIME", "10:30"))
+	require.NoError(t, os.Setenv("MESSAGE_DESCRIPTION_LIMIT", "10"))
 
 	c, err := config.Load()
 	require.NoError(t, err)
@@ -79,6 +85,12 @@ func TestFromEnv(t *testing.T) {
 	require.Equal(t, "https://hooks.slack.com/services/T04RWJXV6KC", c.SlackWebhookURL)
 	require.Equal(t, "10s", c.CronPeriod)
 	require.Equal(t, "10:30", c.CronTime)
+	require.Equal(t, 10, c.MessageDescriptionLimit)
+
+	require.NoError(t, os.Unsetenv("MESSAGE_DESCRIPTION_LIMIT"))
+	c, err = config.Load()
+	require.NoError(t, err)
+	require.Equal(t, 1000, c.MessageDescriptionLimit)
 
 	require.NoError(t, os.Unsetenv("GITLAB_TOKEN"))
 

@@ -2,7 +2,6 @@ package slack
 
 import (
 	"errors"
-	"fmt"
 
 	"gitlab-mr-notifier/internal/interfaces"
 	"gitlab-mr-notifier/internal/models"
@@ -11,10 +10,11 @@ import (
 )
 
 type slack struct {
+	formatter interfaces.MessageFormatter
 }
 
-func New() interfaces.Notifier {
-	return new(slack)
+func New(formatter interfaces.MessageFormatter) interfaces.Notifier {
+	return &slack{formatter: formatter}
 }
 
 func (s slack) Notify(creds interface{}, mrs models.MergeRequests) error {
@@ -24,33 +24,17 @@ func (s slack) Notify(creds interface{}, mrs models.MergeRequests) error {
 	}
 
 	api := slack_api.New().WebhookURL(webhookURL)
-	_, err := api.SendMessage(slack_api.Message{Text: getIntroText(len(mrs))})
+	_, err := api.SendMessage(slack_api.Message{Text: s.formatter.GetIntroText(len(mrs))})
 	if err != nil {
 		return err
 	}
 
 	for _, m := range mrs {
-		_, err := api.SendMessage(slack_api.Message{Text: getMrText(m)})
+		_, err := api.SendMessage(slack_api.Message{Text: s.formatter.GetBody(m)})
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func getIntroText(mrsCount int) string {
-	if mrsCount == 0 {
-		return "Hooray. No MRs to review!"
-	} else if mrsCount == 1 {
-		return "1 MR is still need to be reviewed:"
-	}
-
-	return fmt.Sprintf("%d MRs are still need to be reviewed:", mrsCount)
-}
-
-func getMrText(m models.MergeRequest) string {
-	const defaultTimeLayout = "2006-01-02 15:04:05"
-	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\nDescription: %s\n\nHasConflicts: %v\nDetailedMergeStatus: %s\nUnresolvedThreads: %d\nCreatedAt: %s\nUpdatedAt: %s```",
-		m.Author, m.Title, m.URL, m.Description, m.HasConflicts, m.DetailedMergeStatus, m.UnresolvedThreads, m.CreatedAt.Format(defaultTimeLayout), m.UpdatedAt.Format(defaultTimeLayout))
 }
