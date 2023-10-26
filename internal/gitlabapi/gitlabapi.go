@@ -30,6 +30,10 @@ func (ga gitlabapi) GetMRList(token string, groupid int) (models.MergeRequests, 
 		}
 
 		for _, mr := range mrs {
+			fullInfo := getMergeRequest(client, mr.ProjectID, mr.IID)
+			if fullInfo != nil {
+				mr = fullInfo
+			}
 			notifyMR := toModel(mr)
 			notifyMR.UnresolvedThreads = getUnresolvedThreads(client, mr.ProjectID, mr.IID)
 
@@ -50,7 +54,6 @@ func getMRListByPage(client *gitlab.Client, groupid, page int) ([]*gitlab.MergeR
 	return client.MergeRequests.ListGroupMergeRequests(groupid, &gitlab.ListGroupMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{Page: page},
 		State:       gitlab.String("opened"),
-		Scope:       gitlab.String("all"),
 		Sort:        gitlab.String("asc"),
 		WIP:         gitlab.String("no"),
 	})
@@ -83,8 +86,18 @@ func getUnresolvedThreads(client *gitlab.Client, projectID, mergeRequestID int) 
 	return len(m)
 }
 
+func getMergeRequest(client *gitlab.Client, projectID, mergeRequestID int) *gitlab.MergeRequest {
+	mr, _, err := client.MergeRequests.GetMergeRequest(projectID, mergeRequestID, nil)
+	if err != nil {
+		log.Printf("getting project[%d] mr[%d] full info error: %v\n", projectID, mergeRequestID, err)
+		return nil
+	}
+
+	return mr
+}
+
 func toModel(m *gitlab.MergeRequest) models.MergeRequest {
-	return models.MergeRequest{
+	mr := models.MergeRequest{
 		Title:               m.Title,
 		Description:         m.Description,
 		Author:              m.Author.Name,
@@ -93,5 +106,14 @@ func toModel(m *gitlab.MergeRequest) models.MergeRequest {
 		DetailedMergeStatus: m.DetailedMergeStatus,
 		CreatedAt:           *m.CreatedAt,
 		UpdatedAt:           *m.UpdatedAt,
+		ChangesCount:        m.ChangesCount,
+		Branch:              m.SourceBranch,
 	}
+
+	if m.Pipeline != nil {
+		mr.PipelineInfo.IsFailed = m.Pipeline.Status == "failed"
+		mr.PipelineInfo.URL = m.Pipeline.WebURL
+	}
+
+	return mr
 }

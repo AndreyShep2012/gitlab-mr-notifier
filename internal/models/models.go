@@ -10,8 +10,16 @@ type MergeRequest struct {
 	HasConflicts        bool
 	UnresolvedThreads   int
 	DetailedMergeStatus string
+	ChangesCount        string
+	Branch              string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
+	PipelineInfo        PipelineInfo
 }
 
 type MergeRequests []MergeRequest
+
+type PipelineInfo struct {
+	IsFailed bool
+	URL      string
+}

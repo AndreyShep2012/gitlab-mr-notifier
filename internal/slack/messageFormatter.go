@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gitlab-mr-notifier/internal/interfaces"
 	"gitlab-mr-notifier/internal/models"
+	"strings"
 )
 
 type messageFormatter struct {
@@ -22,8 +23,8 @@ func (m messageFormatter) GetBody(mr models.MergeRequest) string {
 	}
 
 	const defaultTimeLayout = "2006-01-02 15:04:05"
-	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\nDescription: %s\n\nHasConflicts: %v\nDetailedMergeStatus: %s\nUnresolvedThreads: %d\nCreatedAt: %s\nUpdatedAt: %s```",
-		mr.Author, mr.Title, mr.URL, mr.Description, mr.HasConflicts, mr.DetailedMergeStatus, mr.UnresolvedThreads, mr.CreatedAt.Format(defaultTimeLayout), mr.UpdatedAt.Format(defaultTimeLayout))
+	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\nDescription: %s\n\nHasConflicts: %v\nDetailedMergeStatus: %s\nUnresolvedThreads: %d\nBranch: %s\nChangesCount: %s\nCreatedAt: %s\nUpdatedAt: %s```",
+		mr.Author, mr.Title, mr.URL, mr.Description, mr.HasConflicts, mr.DetailedMergeStatus, mr.UnresolvedThreads, mr.Branch, mr.ChangesCount, mr.CreatedAt.Format(defaultTimeLayout), mr.UpdatedAt.Format(defaultTimeLayout))
 }
 
 func (m messageFormatter) GetIntroText(mrsCount int) string {
@@ -36,6 +37,24 @@ func (m messageFormatter) GetIntroText(mrsCount int) string {
 	}
 
 	return fmt.Sprintf("%d MRs are still need to be reviewed:", mrsCount)
+}
+
+func (m messageFormatter) GetPipelineFailedIntroText(mrs int) string {
+	return "MRs with failed pipeline"
+}
+
+func (m messageFormatter) GetPipelineFailedGetBody(mrs []models.MergeRequest) string {
+	var sb strings.Builder
+	sb.WriteString("```\n")
+
+	for _, mr := range mrs {
+		sb.WriteString(fmt.Sprintf("Author: %s\n", mr.Author))
+		sb.WriteString(fmt.Sprintf("Title: %s\n", mr.Title))
+		sb.WriteString(fmt.Sprintf("URL: %s\n", mr.URL))
+		sb.WriteString(fmt.Sprintf("Pipeline: %s\n\n", mr.PipelineInfo.URL))
+	}
+	sb.WriteString("```")
+	return sb.String()
 }
 
 func crop(s string, limit int) string {

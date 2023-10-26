@@ -24,6 +24,19 @@ func (s slack) Notify(creds interface{}, mrs models.MergeRequests) error {
 	}
 
 	api := slack_api.New().WebhookURL(webhookURL)
+	successPipeline, failedPipeline := sortMRs(mrs)
+	if err := s.sendSuccessPipelineMRs(api, successPipeline); err != nil {
+		return err
+	}
+
+	if err := s.sendFailedPipelineMRs(api, failedPipeline); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s slack) sendSuccessPipelineMRs(api *slack_api.Slack, mrs models.MergeRequests) error {
 	_, err := api.SendMessage(slack_api.Message{Text: s.formatter.GetIntroText(len(mrs))})
 	if err != nil {
 		return err
@@ -37,4 +50,26 @@ func (s slack) Notify(creds interface{}, mrs models.MergeRequests) error {
 	}
 
 	return nil
+}
+
+func (s slack) sendFailedPipelineMRs(api *slack_api.Slack, mrs models.MergeRequests) error {
+	_, err := api.SendMessage(slack_api.Message{Text: s.formatter.GetPipelineFailedIntroText(len(mrs))})
+	if err != nil {
+		return err
+	}
+
+	_, err = api.SendMessage(slack_api.Message{Text: s.formatter.GetPipelineFailedGetBody(mrs)})
+	return err
+}
+
+func sortMRs(mrs models.MergeRequests) (successPipeline, failedPipeline models.MergeRequests) {
+	for _, mr := range mrs {
+		arr := &successPipeline
+		if mr.PipelineInfo.IsFailed {
+			arr = &failedPipeline
+		}
+
+		*arr = append(*arr, mr)
+	}
+	return
 }
