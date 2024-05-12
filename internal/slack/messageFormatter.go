@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"gitlab-mr-notifier/internal/interfaces"
 	"gitlab-mr-notifier/internal/models"
+	"slices"
 	"strings"
 )
 
 type messageFormatter struct {
-	limit int
+	limit               int
+	shortMessageAuthors []string
 }
 
 const SimpleMessageFormatterNoLimit = 0
+const defaultTimeLayout = "2006-01-02 15:04:05"
 
-func NewSimpleMessageFormatter(limit int) interfaces.MessageFormatter {
-	return &messageFormatter{limit: limit}
+func NewSimpleMessageFormatter(limit int, shortMessageAuthors string) interfaces.MessageFormatter {
+	return &messageFormatter{limit: limit, shortMessageAuthors: strings.Split(shortMessageAuthors, ",")}
 }
 
 func (m messageFormatter) GetBody(mr models.MergeRequest) string {
@@ -22,9 +25,21 @@ func (m messageFormatter) GetBody(mr models.MergeRequest) string {
 		mr.Description = crop(mr.Description, m.limit)
 	}
 
-	const defaultTimeLayout = "2006-01-02 15:04:05"
+	if slices.Contains(m.shortMessageAuthors, mr.Author) {
+		return getBodyNoDescription(mr)
+	}
+
+	return getBodyWithDescription(mr)
+}
+
+func getBodyWithDescription(mr models.MergeRequest) string {
 	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\nDescription: %s\n\nHasConflicts: %v\nDetailedMergeStatus: %s\nUnresolvedThreads: %d\nBranch: %s\nChangesCount: %s\nCreatedAt: %s\nUpdatedAt: %s```",
 		mr.Author, mr.Title, mr.URL, mr.Description, mr.HasConflicts, mr.DetailedMergeStatus, mr.UnresolvedThreads, mr.Branch, mr.ChangesCount, mr.CreatedAt.Format(defaultTimeLayout), mr.UpdatedAt.Format(defaultTimeLayout))
+}
+
+func getBodyNoDescription(mr models.MergeRequest) string {
+	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\n\nUnresolvedThreads: %d\nBranch: %s\nChangesCount: %s\nCreatedAt: %s```",
+		mr.Author, mr.Title, mr.URL, mr.UnresolvedThreads, mr.Branch, mr.ChangesCount, mr.CreatedAt.Format(defaultTimeLayout))
 }
 
 func (m messageFormatter) GetIntroText(mrsCount int) string {

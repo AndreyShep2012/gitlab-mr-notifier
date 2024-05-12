@@ -18,7 +18,7 @@ func TestSend(t *testing.T) {
 	url := os.Getenv("SLACK_WEBHOOK_URL")
 	require.NotEmpty(t, url)
 
-	sl := slack.New(slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit))
+	sl := slack.New(slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit, ""))
 	err := sl.Notify(url, nil)
 
 	require.NoError(t, err)
@@ -53,23 +53,28 @@ func TestSend(t *testing.T) {
 }
 
 func TestSimpleFormatterBody(t *testing.T) {
-	f := slack.NewSimpleMessageFormatter(-100)
-	require.Contains(t, f.GetBody(models.MergeRequest{Description: "desc1"}), "desc1")
+	f := slack.NewSimpleMessageFormatter(-100, "")
+	require.Contains(t, f.GetBody(models.MergeRequest{Author: "author", Description: "desc1"}), "desc1")
 
-	f = slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit)
-	require.Contains(t, f.GetBody(models.MergeRequest{Description: "desc1"}), "desc1")
+	f = slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit, "")
+	require.Contains(t, f.GetBody(models.MergeRequest{Author: "author", Description: "desc1"}), "desc1")
 
-	f = slack.NewSimpleMessageFormatter(5)
-	body := f.GetBody(models.MergeRequest{Description: "desc123"})
+	f = slack.NewSimpleMessageFormatter(5, "")
+	body := f.GetBody(models.MergeRequest{Author: "author", Description: "desc123"})
 	require.Contains(t, body, "desc1")
 	require.NotContains(t, body, "desc12")
 
-	f = slack.NewSimpleMessageFormatter(5000)
-	require.Contains(t, f.GetBody(models.MergeRequest{Description: "desc1"}), "desc1")
+	f = slack.NewSimpleMessageFormatter(5000, "")
+	require.Contains(t, f.GetBody(models.MergeRequest{Author: "author", Description: "desc1"}), "desc1")
+
+	f = slack.NewSimpleMessageFormatter(5000, "test")
+	res := f.GetBody(models.MergeRequest{Title: "title", Author: "test", Description: "desc1"})
+	require.Contains(t, res, "title")
+	require.NotContains(t, res, "desc1")
 }
 
 func TestSimpleFormatterIntro(t *testing.T) {
-	f := slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit)
+	f := slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit, "")
 	require.Equal(t, "Hooray. No MRs to review!", f.GetIntroText(0))
 	require.Equal(t, "Wrong number of MRS: -10 !!!", f.GetIntroText(-10))
 	require.Equal(t, "1 MR is still need to be reviewed:", f.GetIntroText(1))
