@@ -40,7 +40,7 @@ Create create text file with environment variables (.env format)
 
 ```
 GITLAB_TOKEN=`your-token`
-GITLAB_GROUP_ID=`your-id`
+GITLAB_GROUP_IDS=`your-id`
 SLACK_WEBHOOK_URL=`your webhook url`
 CRON_PERIOD=1d
 CRON_TIME=10:30
