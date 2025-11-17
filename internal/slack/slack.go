@@ -17,7 +17,7 @@ func New(formatter interfaces.MessageFormatter) interfaces.Notifier {
 	return &slack{formatter: formatter}
 }
 
-func (s slack) Notify(creds interface{}, mrs models.MergeRequests) error {
+func (s slack) Notify(creds any, mrs models.MergeRequests) error {
 	webhookURL, ok := creds.(string)
 	if !ok {
 		return errors.New("wrong credentials format, please use string for webhook url")

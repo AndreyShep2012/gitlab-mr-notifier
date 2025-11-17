@@ -14,7 +14,7 @@ func New(formatter interfaces.MessageFormatter) interfaces.Notifier {
 	return &notifier{formatter: formatter}
 }
 
-func (n notifier) Notify(creds interface{}, mrs models.MergeRequests) error {
+func (n notifier) Notify(creds any, mrs models.MergeRequests) error {
 	for _, m := range mrs {
 		log.Println(n.formatter.GetBody(m))
 	}

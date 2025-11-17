@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -25,14 +26,38 @@ func LoadAWSLambda() (Config, error) {
 		return Config{}, err
 	}
 
-	gitlabGroupId, err := decryptAWSString(os.Getenv("GITLAB_GROUP_ID"), kmsClient, encryptionContext)
+	gitlabGroupIds, err := decryptAWSString(os.Getenv("GITLAB_GROUP_IDS"), kmsClient, encryptionContext)
 	if err != nil {
 		return Config{}, err
 	}
 
-	groupId, err := strconv.Atoi(gitlabGroupId)
+	var groupIds []int
+	data := strings.Split(gitlabGroupIds, ",")
+
+	for _, v := range data {
+		id, err := strconv.Atoi(strings.TrimSpace(v))
+		if err != nil {
+			return Config{}, err
+		}
+
+		groupIds = append(groupIds, id)
+	}
+
+	gitlabProjectIds, err := decryptAWSString(os.Getenv("GITLAB_PROJECT_IDS"), kmsClient, encryptionContext)
 	if err != nil {
 		return Config{}, err
+	}
+
+	var projectIds []int
+	data = strings.Split(gitlabProjectIds, ",")
+
+	for _, v := range data {
+		id, err := strconv.Atoi(strings.TrimSpace(v))
+		if err != nil {
+			return Config{}, err
+		}
+
+		projectIds = append(projectIds, id)
 	}
 
 	slackWebhookURL, err := decryptAWSString(os.Getenv("SLACK_WEBHOOK_URL"), kmsClient, encryptionContext)
@@ -41,9 +66,10 @@ func LoadAWSLambda() (Config, error) {
 	}
 
 	c := Config{
-		GitlabToken:     gitlabToken,
-		GitlabGroupID:   groupId,
-		SlackWebhookURL: slackWebhookURL,
+		GitlabToken:      gitlabToken,
+		GitlabGroupIDS:   groupIds,
+		GitlabProjectIDS: projectIds,
+		SlackWebhookURL:  slackWebhookURL,
 	}
 
 	if err := checkRequred(c); err != nil {

@@ -12,7 +12,8 @@ import (
 
 type Config struct {
 	GitlabToken             string `env:"GITLAB_TOKEN" env-required:"true"`
-	GitlabGroupID           int    `env:"GITLAB_GROUP_ID" env-required:"true"`
+	GitlabGroupIDS          []int  `env:"GITLAB_GROUP_IDS" env-required:"true"`
+	GitlabProjectIDS        []int  `env:"GITLAB_PROJECT_IDS"`
 	SlackWebhookURL         string `env:"SLACK_WEBHOOK_URL" env-required:"true"`
 	CronPeriod              string `env:"CRON_PERIOD"`
 	CronTime                string `env:"CRON_TIME"`
@@ -47,7 +48,7 @@ func checkRequred(c Config) error {
 		errs = append(errs, "GITLAB_TOKEN can't be empty")
 	}
 
-	if c.GitlabGroupID == 0 {
+	if len(c.GitlabGroupIDS) == 0 {
 		errs = append(errs, "GITLAB_GROUP_ID can't be empty")
 	}
 

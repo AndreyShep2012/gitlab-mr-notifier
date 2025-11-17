@@ -15,7 +15,15 @@ func New() interfaces.GitlabApi {
 	return new(gitlabapi)
 }
 
-func (ga gitlabapi) GetMRList(token string, groupid int) (models.MergeRequests, error) {
+func (ga gitlabapi) GetGroupMRList(token string, groupid int) (models.MergeRequests, error) {
+	return ga.getMRList(token, groupid, getGroupMRListByPage)
+}
+
+func (ga gitlabapi) GetProjectMRList(token string, projectid int) (models.MergeRequests, error) {
+	return ga.getMRList(token, projectid, getProjectMRListByPage)
+}
+
+func (ga gitlabapi) getMRList(token string, id int, f func(*gitlab.Client, int, int) ([]*gitlab.MergeRequest, *gitlab.Response, error)) (models.MergeRequests, error) {
 	client, err := gitlab.NewClient(token)
 	if err != nil {
 		return nil, err
@@ -24,7 +32,7 @@ func (ga gitlabapi) GetMRList(token string, groupid int) (models.MergeRequests, 
 	var res models.MergeRequests
 	page := 1
 	for {
-		mrs, response, err := getMRListByPage(client, groupid, page)
+		mrs, response, err := f(client, id, page)
 		if err != nil {
 			return res, err
 		}
@@ -50,8 +58,17 @@ func (ga gitlabapi) GetMRList(token string, groupid int) (models.MergeRequests, 
 	return res, err
 }
 
-func getMRListByPage(client *gitlab.Client, groupid, page int) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
+func getGroupMRListByPage(client *gitlab.Client, groupid, page int) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
 	return client.MergeRequests.ListGroupMergeRequests(groupid, &gitlab.ListGroupMergeRequestsOptions{
+		ListOptions: gitlab.ListOptions{Page: page},
+		State:       gitlab.String("opened"),
+		Sort:        gitlab.String("asc"),
+		WIP:         gitlab.String("no"),
+	})
+}
+
+func getProjectMRListByPage(client *gitlab.Client, projectId, page int) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
+	return client.MergeRequests.ListProjectMergeRequests(projectId, &gitlab.ListProjectMergeRequestsOptions{
 		ListOptions: gitlab.ListOptions{Page: page},
 		State:       gitlab.String("opened"),
 		Sort:        gitlab.String("asc"),
