@@ -60,7 +60,7 @@ Create `.env` file in root with test values
 
 ```
 GITLAB_TOKEN=`your-token`
-GITLAB_GROUP_ID=`your-id`
+GITLAB_GROUP_IDS=`your-id`
 SLACK_WEBHOOK_URL=`your webhook url`
 CRON_PERIOD=1d
 CRON_TIME=10:30
@@ -98,7 +98,7 @@ Create .zip with Linux build:
 $ make aws-zip
 ```
 
-These environment variables should be configured on AWS side: `GITLAB_TOKEN`, `GITLAB_GROUP_ID`, `SLACK_WEBHOOK_URL`
+These environment variables should be configured on AWS side: `GITLAB_TOKEN`, `GITLAB_GROUP_IDS`, `SLACK_WEBHOOK_URL`
 
 **_Important:_** All environment variables should be [encrypted](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html)
 

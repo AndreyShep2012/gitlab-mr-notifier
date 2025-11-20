@@ -18,7 +18,7 @@ func TestGitlabapi(t *testing.T) {
 	token := os.Getenv("GITLAB_TOKEN")
 	require.NotEmpty(t, token)
 
-	id := os.Getenv("GITLAB_GROUP_ID")
+	id := os.Getenv("GITLAB_GROUP_IDS")
 	require.NotEmpty(t, token)
 
 	groupid, err := strconv.Atoi(id)
@@ -42,7 +42,7 @@ func TestGetMRListEmptyCreds(t *testing.T) {
 	require.Error(t, err)
 	require.Empty(t, res)
 
-	id := os.Getenv("GITLAB_GROUP_ID")
+	id := os.Getenv("GITLAB_GROUP_IDS")
 	require.NotEmpty(t, token)
 
 	groupid, err := strconv.Atoi(id)

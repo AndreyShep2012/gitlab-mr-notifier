@@ -35,21 +35,21 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("read env error %v", err)
 	}
 
-	if err := checkRequred(c); err != nil {
+	if err := checkRequired(c); err != nil {
 		return Config{}, fmt.Errorf("check required error %v", err)
 	}
 
 	return c, nil
 }
 
-func checkRequred(c Config) error {
+func checkRequired(c Config) error {
 	var errs []string
 	if c.GitlabToken == "" {
 		errs = append(errs, "GITLAB_TOKEN can't be empty")
 	}
 
 	if len(c.GitlabGroupIDS) == 0 {
-		errs = append(errs, "GITLAB_GROUP_ID can't be empty")
+		errs = append(errs, "GITLAB_GROUP_IDS can't be empty")
 	}
 
 	if c.SlackWebhookURL == "" {

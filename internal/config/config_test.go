@@ -17,7 +17,7 @@ func TestLoadFromFile(t *testing.T) {
 
 	params := []string{
 		"GITLAB_TOKEN=token",
-		"GITLAB_GROUP_ID=64504965",
+		"GITLAB_GROUP_IDS=64504965",
 		"SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T04RWJXV6KC",
 		"CRON_PERIOD=10s",
 	}
@@ -77,7 +77,7 @@ func TestLoadFromFile(t *testing.T) {
 func TestFromEnv(t *testing.T) {
 	require.NoError(t, os.Setenv("CONFIG_PATH", ""))
 	require.NoError(t, os.Setenv("GITLAB_TOKEN", "token"))
-	require.NoError(t, os.Setenv("GITLAB_GROUP_ID", "64504965"))
+	require.NoError(t, os.Setenv("GITLAB_GROUP_IDS", "64504965"))
 	require.NoError(t, os.Setenv("SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/T04RWJXV6KC"))
 	require.NoError(t, os.Setenv("CRON_PERIOD", "10s"))
 	require.NoError(t, os.Setenv("CRON_TIME", "10:30"))
@@ -111,12 +111,12 @@ func TestFromEnv(t *testing.T) {
 func TestRequired(t *testing.T) {
 	require.NoError(t, os.Setenv("CONFIG_PATH", ""))
 	require.NoError(t, os.Setenv("GITLAB_TOKEN", ""))
-	require.NoError(t, os.Setenv("GITLAB_GROUP_ID", "0"))
+	require.NoError(t, os.Setenv("GITLAB_GROUP_IDS", ""))
 	require.NoError(t, os.Setenv("SLACK_WEBHOOK_URL", ""))
 
 	c, err := config.Load()
 	require.ErrorContains(t, err, "GITLAB_TOKEN")
-	require.ErrorContains(t, err, "GITLAB_GROUP_ID")
+	require.ErrorContains(t, err, "GITLAB_GROUP_IDS")
 	require.ErrorContains(t, err, "SLACK_WEBHOOK_URL")
 	require.Empty(t, c)
 }

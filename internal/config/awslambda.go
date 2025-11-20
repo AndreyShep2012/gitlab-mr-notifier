@@ -1,32 +1,34 @@
 package config
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 )
 
 func LoadAWSLambda() (Config, error) {
-	session, err := session.NewSession()
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return Config{}, err
 	}
 
-	kmsClient := kms.New(session)
-	encryptionContext := aws.StringMap(map[string]string{"LambdaFunctionName": os.Getenv("AWS_LAMBDA_FUNCTION_NAME")})
+	kmsClient := kms.NewFromConfig(cfg)
+	encryptionContext := map[string]string{"LambdaFunctionName": os.Getenv("AWS_LAMBDA_FUNCTION_NAME")}
 
-	gitlabToken, err := decryptAWSString(os.Getenv("GITLAB_TOKEN"), kmsClient, encryptionContext)
+	gitlabToken, err := decryptAWSString(ctx, os.Getenv("GITLAB_TOKEN"), kmsClient, encryptionContext)
 	if err != nil {
 		return Config{}, err
 	}
 
-	gitlabGroupIds, err := decryptAWSString(os.Getenv("GITLAB_GROUP_IDS"), kmsClient, encryptionContext)
+	gitlabGroupIds, err := decryptAWSString(ctx, os.Getenv("GITLAB_GROUP_IDS"), kmsClient, encryptionContext)
 	if err != nil {
 		return Config{}, err
 	}
@@ -43,24 +45,27 @@ func LoadAWSLambda() (Config, error) {
 		groupIds = append(groupIds, id)
 	}
 
-	gitlabProjectIds, err := decryptAWSString(os.Getenv("GITLAB_PROJECT_IDS"), kmsClient, encryptionContext)
-	if err != nil {
-		return Config{}, err
-	}
-
 	var projectIds []int
-	data = strings.Split(gitlabProjectIds, ",")
-
-	for _, v := range data {
-		id, err := strconv.Atoi(strings.TrimSpace(v))
+	gitlabProjectIdsEnv := os.Getenv("GITLAB_PROJECT_IDS")
+	if gitlabProjectIdsEnv != "" {
+		gitlabProjectIds, err := decryptAWSString(ctx, gitlabProjectIdsEnv, kmsClient, encryptionContext)
 		if err != nil {
 			return Config{}, err
 		}
 
-		projectIds = append(projectIds, id)
+		data = strings.Split(gitlabProjectIds, ",")
+
+		for _, v := range data {
+			id, err := strconv.Atoi(strings.TrimSpace(v))
+			if err != nil {
+				return Config{}, err
+			}
+
+			projectIds = append(projectIds, id)
+		}
 	}
 
-	slackWebhookURL, err := decryptAWSString(os.Getenv("SLACK_WEBHOOK_URL"), kmsClient, encryptionContext)
+	slackWebhookURL, err := decryptAWSString(ctx, os.Getenv("SLACK_WEBHOOK_URL"), kmsClient, encryptionContext)
 	if err != nil {
 		return Config{}, err
 	}
@@ -70,19 +75,28 @@ func LoadAWSLambda() (Config, error) {
 		GitlabGroupIDS:   groupIds,
 		GitlabProjectIDS: projectIds,
 		SlackWebhookURL:  slackWebhookURL,
+		ShortMsgAuthors:  os.Getenv("SHORT_MESSAGE_AUTHORS"),
 	}
 
-	if err := checkRequred(c); err != nil {
+	if err := checkRequired(c); err != nil {
 		return Config{}, fmt.Errorf("check required error %v", err)
 	}
 
 	return c, nil
 }
 
-func decryptAWSString(encrypted string, kmsClient *kms.KMS, encryptionContext map[string]*string) (string, error) {
+func decryptAWSString(ctx context.Context, encrypted string, kmsClient *kms.Client, encryptionContext map[string]string) (string, error) {
+	if encrypted == "" {
+		return "", fmt.Errorf("encrypted string is empty")
+	}
+
 	decodedBytes, err := base64.StdEncoding.DecodeString(encrypted)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("base64 decode error: %w", err)
+	}
+
+	if len(decodedBytes) == 0 {
+		return "", fmt.Errorf("decoded bytes are empty")
 	}
 
 	input := &kms.DecryptInput{
@@ -90,9 +104,9 @@ func decryptAWSString(encrypted string, kmsClient *kms.KMS, encryptionContext ma
 		EncryptionContext: encryptionContext,
 	}
 
-	response, err := kmsClient.Decrypt(input)
+	response, err := kmsClient.Decrypt(ctx, input)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("KMS decrypt error: %w", err)
 	}
 
 	return string(response.Plaintext), nil
