@@ -75,7 +75,6 @@ func LoadAWSLambda() (Config, error) {
 		GitlabGroupIDS:   groupIds,
 		GitlabProjectIDS: projectIds,
 		SlackWebhookURL:  slackWebhookURL,
-		ShortMsgAuthors:  os.Getenv("SHORT_MESSAGE_AUTHORS"),
 	}
 
 	if err := checkRequired(c); err != nil {

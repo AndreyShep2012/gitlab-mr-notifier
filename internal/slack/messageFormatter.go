@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"gitlab-mr-notifier/internal/interfaces"
 	"gitlab-mr-notifier/internal/models"
-	"slices"
 	"strings"
 )
 
 type messageFormatter struct {
-	limit               int
-	shortMessageAuthors []string
+	limit int
 }
 
 const SimpleMessageFormatterNoLimit = 0
 const defaultTimeLayout = "2006-01-02 15:04:05"
 
-func NewSimpleMessageFormatter(limit int, shortMessageAuthors string) interfaces.MessageFormatter {
-	return &messageFormatter{limit: limit, shortMessageAuthors: strings.Split(shortMessageAuthors, ",")}
+func NewSimpleMessageFormatter(limit int) interfaces.MessageFormatter {
+	return &messageFormatter{limit: limit}
 }
 
 func (m messageFormatter) GetBody(mr models.MergeRequest) string {
@@ -25,21 +23,12 @@ func (m messageFormatter) GetBody(mr models.MergeRequest) string {
 		mr.Description = crop(mr.Description, m.limit)
 	}
 
-	if slices.Contains(m.shortMessageAuthors, mr.Author) {
-		return getBodyNoDescription(mr)
-	}
-
 	return getBodyWithDescription(mr)
 }
 
 func getBodyWithDescription(mr models.MergeRequest) string {
 	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\nDescription: %s\n\nHasConflicts: %v\nDetailedMergeStatus: %s\nUnresolvedThreads: %d\nBranch: %s\nChangesCount: %s\nCreatedAt: %s\nUpdatedAt: %s```",
-		mr.Author, mr.Title, mr.URL, mr.Description, mr.HasConflicts, mr.DetailedMergeStatus, mr.UnresolvedThreads, mr.Branch, mr.ChangesCount, mr.CreatedAt.Format(defaultTimeLayout), mr.UpdatedAt.Format(defaultTimeLayout))
-}
-
-func getBodyNoDescription(mr models.MergeRequest) string {
-	return fmt.Sprintf("```Author: %s\nTitle: %s\nURL: %s\n\nUnresolvedThreads: %d\nBranch: %s\nChangesCount: %s\nCreatedAt: %s```",
-		mr.Author, mr.Title, mr.URL, mr.UnresolvedThreads, mr.Branch, mr.ChangesCount, mr.CreatedAt.Format(defaultTimeLayout))
+		mr.Author, mr.Title, mr.URL, sanitizeDescription(mr.Description), mr.HasConflicts, mr.DetailedMergeStatus, mr.UnresolvedThreads, mr.Branch, mr.ChangesCount, mr.CreatedAt.Format(defaultTimeLayout), mr.UpdatedAt.Format(defaultTimeLayout))
 }
 
 func (m messageFormatter) GetIntroText(mrsCount int) string {
@@ -63,13 +52,18 @@ func (m messageFormatter) GetPipelineFailedGetBody(mrs []models.MergeRequest) st
 	sb.WriteString("```\n")
 
 	for _, mr := range mrs {
-		sb.WriteString(fmt.Sprintf("Author: %s\n", mr.Author))
-		sb.WriteString(fmt.Sprintf("Title: %s\n", mr.Title))
-		sb.WriteString(fmt.Sprintf("URL: %s\n", mr.URL))
-		sb.WriteString(fmt.Sprintf("Pipeline: %s\n\n", mr.PipelineInfo.URL))
+		fmt.Fprintf(&sb, "Author: %s\n", mr.Author)
+		fmt.Fprintf(&sb, "Title: %s\n", mr.Title)
+		fmt.Fprintf(&sb, "URL: %s\n", mr.URL)
+		fmt.Fprintf(&sb, "Pipeline: %s\n\n", mr.PipelineInfo.URL)
 	}
 	sb.WriteString("```")
 	return sb.String()
+}
+
+// sanitizeDescription removes backtick sequences that would break the Slack code block wrapper.
+func sanitizeDescription(s string) string {
+	return strings.ReplaceAll(s, "```", "'''")
 }
 
 func crop(s string, limit int) string {

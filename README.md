@@ -104,5 +104,21 @@ These environment variables should be configured on AWS side: `GITLAB_TOKEN`, `G
 
 [Amazon EventBridge Scheduler](https://aws.amazon.com/blogs/compute/introducing-amazon-eventbridge-scheduler/) with [Cron-based schedules](https://docs.aws.amazon.com/scheduler/latest/UserGuide/schedule-types.html?icmpid=docs_console_unmapped#cron-based) can be used to call lambda periodically.
 
+### Helpers
+
+#### Decrypt a KMS-encrypted environment variable
+
+Environment variables encrypted for Lambda use the encryption context `LambdaFunctionName`. To verify a ciphertext locally:
+
+```bash
+aws kms decrypt \
+  --ciphertext-blob fileb://<(echo "<base64-ciphertext>" | base64 -d) \
+  --encryption-context "LambdaFunctionName=YOUR_FUNCTION_NAME" \
+  --output text \
+  --query Plaintext | base64 -d
+```
+
+Replace `<base64-ciphertext>` with the value from the Lambda environment variable (must be a single unbroken base64 string, no spaces or newlines) and `YOUR_FUNCTION_NAME` with the Lambda function name as it appears in AWS.
+
 
 

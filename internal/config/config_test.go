@@ -12,8 +12,8 @@ func TestLoadFromFile(t *testing.T) {
 	f, err := os.CreateTemp("", "tmpfile-")
 	require.NoError(t, err)
 
-	defer f.Close()
-	defer os.Remove(f.Name())
+	defer func() { _ = f.Close() }()
+	defer func() { _ = os.Remove(f.Name()) }()
 
 	params := []string{
 		"GITLAB_TOKEN=token",

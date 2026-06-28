@@ -11,7 +11,7 @@ import (
 )
 
 func check(config config.Config) {
-	f := slack.NewSimpleMessageFormatter(config.MessageDescriptionLimit, config.ShortMsgAuthors)
+	f := slack.NewSimpleMessageFormatter(config.MessageDescriptionLimit)
 	notifier := slack.New(f)
 	if config.Notifier == "log" {
 		notifier = lognotifier.New(f)

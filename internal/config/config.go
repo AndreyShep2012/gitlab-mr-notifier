@@ -19,7 +19,6 @@ type Config struct {
 	CronTime                string `env:"CRON_TIME"`
 	MessageDescriptionLimit int    `env:"MESSAGE_DESCRIPTION_LIMIT" env-default:"500"`
 	Notifier                string `env:"NOTIFIER" env-default:"slack"`
-	ShortMsgAuthors         string `env:"SHORT_MESSAGE_AUTHORS"`
 }
 
 func Load() (Config, error) {

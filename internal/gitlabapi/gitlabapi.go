@@ -5,7 +5,7 @@ import (
 	"gitlab-mr-notifier/internal/models"
 	"log"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 type gitlabapi struct {
@@ -23,7 +23,7 @@ func (ga gitlabapi) GetProjectMRList(token string, projectid int) (models.MergeR
 	return ga.getMRList(token, projectid, getProjectMRListByPage)
 }
 
-func (ga gitlabapi) getMRList(token string, id int, f func(*gitlab.Client, int, int) ([]*gitlab.MergeRequest, *gitlab.Response, error)) (models.MergeRequests, error) {
+func (ga gitlabapi) getMRList(token string, id int, f func(*gitlab.Client, int, int) ([]*gitlab.BasicMergeRequest, *gitlab.Response, error)) (models.MergeRequests, error) {
 	client, err := gitlab.NewClient(token)
 	if err != nil {
 		return nil, err
@@ -39,10 +39,10 @@ func (ga gitlabapi) getMRList(token string, id int, f func(*gitlab.Client, int, 
 
 		for _, mr := range mrs {
 			fullInfo := getMergeRequest(client, mr.ProjectID, mr.IID)
-			if fullInfo != nil {
-				mr = fullInfo
+			if fullInfo == nil {
+				continue
 			}
-			notifyMR := toModel(mr)
+			notifyMR := toModel(fullInfo)
 			notifyMR.UnresolvedThreads = getUnresolvedThreads(client, mr.ProjectID, mr.IID)
 
 			res = append(res, notifyMR)
@@ -58,31 +58,30 @@ func (ga gitlabapi) getMRList(token string, id int, f func(*gitlab.Client, int, 
 	return res, err
 }
 
-func getGroupMRListByPage(client *gitlab.Client, groupid, page int) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
+func getGroupMRListByPage(client *gitlab.Client, groupid, page int) ([]*gitlab.BasicMergeRequest, *gitlab.Response, error) {
 	return client.MergeRequests.ListGroupMergeRequests(groupid, &gitlab.ListGroupMergeRequestsOptions{
-		ListOptions: gitlab.ListOptions{Page: page},
-		State:       gitlab.String("opened"),
-		Sort:        gitlab.String("asc"),
-		WIP:         gitlab.String("no"),
+		ListOptions: gitlab.ListOptions{Page: int64(page)},
+		State:       gitlab.Ptr("opened"),
+		Sort:        gitlab.Ptr("asc"),
+		Draft:       gitlab.Ptr(false),
 	})
 }
 
-func getProjectMRListByPage(client *gitlab.Client, projectId, page int) ([]*gitlab.MergeRequest, *gitlab.Response, error) {
+func getProjectMRListByPage(client *gitlab.Client, projectId, page int) ([]*gitlab.BasicMergeRequest, *gitlab.Response, error) {
 	return client.MergeRequests.ListProjectMergeRequests(projectId, &gitlab.ListProjectMergeRequestsOptions{
-		ListOptions: gitlab.ListOptions{Page: page},
-		State:       gitlab.String("opened"),
-		Sort:        gitlab.String("asc"),
-		WIP:         gitlab.String("no"),
+		ListOptions: gitlab.ListOptions{Page: int64(page)},
+		State:       gitlab.Ptr("opened"),
+		Sort:        gitlab.Ptr("asc"),
+		Draft:       gitlab.Ptr(false),
 	})
 }
 
-func getUnresolvedThreads(client *gitlab.Client, projectID, mergeRequestID int) int {
+func getUnresolvedThreads(client *gitlab.Client, projectID, mergeRequestID int64) int {
 	discussions, _, err := client.Discussions.ListMergeRequestDiscussions(
 		projectID,
 		mergeRequestID,
 		&gitlab.ListMergeRequestDiscussionsOptions{
-			Page:    0,
-			PerPage: 100,
+			ListOptions: gitlab.ListOptions{PerPage: 100},
 		},
 	)
 	if err != nil {
@@ -103,7 +102,7 @@ func getUnresolvedThreads(client *gitlab.Client, projectID, mergeRequestID int) 
 	return len(m)
 }
 
-func getMergeRequest(client *gitlab.Client, projectID, mergeRequestID int) *gitlab.MergeRequest {
+func getMergeRequest(client *gitlab.Client, projectID, mergeRequestID int64) *gitlab.MergeRequest {
 	mr, _, err := client.MergeRequests.GetMergeRequest(projectID, mergeRequestID, nil)
 	if err != nil {
 		log.Printf("getting project[%d] mr[%d] full info error: %v\n", projectID, mergeRequestID, err)

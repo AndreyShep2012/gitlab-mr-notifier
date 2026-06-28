@@ -18,7 +18,7 @@ func TestSend(t *testing.T) {
 	url := os.Getenv("SLACK_WEBHOOK_URL")
 	require.NotEmpty(t, url)
 
-	sl := slack.New(slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit, ""))
+	sl := slack.New(slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit))
 	err := sl.Notify(url, nil)
 
 	require.NoError(t, err)
@@ -52,29 +52,57 @@ func TestSend(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSendWithBackticks(t *testing.T) {
+	require.NoError(t, godotenv.Load("../../.env"))
+
+	url := os.Getenv("SLACK_WEBHOOK_URL")
+	require.NotEmpty(t, url)
+
+	sl := slack.New(slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit))
+	mrs := models.MergeRequests{
+		{
+			Title:               "MR with code block in description",
+			Author:              "Author 1",
+			Description:         "# Notes\n```yaml\nkey: value\n```\nSome trailing text.",
+			URL:                 "https://gitlab.com/testingapi3/docker-test/-/merge_requests/2",
+			HasConflicts:        false,
+			UnresolvedThreads:   0,
+			DetailedMergeStatus: "not_approved",
+			CreatedAt:           time.Now(),
+			UpdatedAt:           time.Now(),
+		},
+	}
+
+	err := sl.Notify(url, mrs)
+	require.NoError(t, err)
+}
+
 func TestSimpleFormatterBody(t *testing.T) {
-	f := slack.NewSimpleMessageFormatter(-100, "")
+	f := slack.NewSimpleMessageFormatter(-100)
 	require.Contains(t, f.GetBody(models.MergeRequest{Author: "author", Description: "desc1"}), "desc1")
 
-	f = slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit, "")
+	f = slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit)
 	require.Contains(t, f.GetBody(models.MergeRequest{Author: "author", Description: "desc1"}), "desc1")
 
-	f = slack.NewSimpleMessageFormatter(5, "")
+	f = slack.NewSimpleMessageFormatter(5)
 	body := f.GetBody(models.MergeRequest{Author: "author", Description: "desc123"})
 	require.Contains(t, body, "desc1")
 	require.NotContains(t, body, "desc12")
 
-	f = slack.NewSimpleMessageFormatter(5000, "")
+	f = slack.NewSimpleMessageFormatter(5000)
 	require.Contains(t, f.GetBody(models.MergeRequest{Author: "author", Description: "desc1"}), "desc1")
+}
 
-	f = slack.NewSimpleMessageFormatter(5000, "test")
-	res := f.GetBody(models.MergeRequest{Title: "title", Author: "test", Description: "desc1"})
-	require.Contains(t, res, "title")
-	require.NotContains(t, res, "desc1")
+func TestSimpleFormatterBodySanitizesBackticks(t *testing.T) {
+	f := slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit)
+	body := f.GetBody(models.MergeRequest{Author: "author", Description: "# Notes\n```yaml\nkey: value\n```"})
+	// The description backtick fences must not appear verbatim — they would break the Slack code block.
+	require.NotContains(t, body, "```yaml")
+	require.Contains(t, body, "'''yaml")
 }
 
 func TestSimpleFormatterIntro(t *testing.T) {
-	f := slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit, "")
+	f := slack.NewSimpleMessageFormatter(slack.SimpleMessageFormatterNoLimit)
 	require.Equal(t, "Hooray. No MRs to review!", f.GetIntroText(0))
 	require.Equal(t, "Wrong number of MRS: -10 !!!", f.GetIntroText(-10))
 	require.Equal(t, "1 MR is still need to be reviewed:", f.GetIntroText(1))
